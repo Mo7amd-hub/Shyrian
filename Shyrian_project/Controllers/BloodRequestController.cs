@@ -1,12 +1,242 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Shyrian_project.Models;
+using System.Security.Claims;
 
 namespace Shyrian_project.Controllers
 {
+	[Authorize] 
 	public class BloodRequestController : Controller
 	{
-		public IActionResult Index()
+		private readonly appDbContext _context;
+
+		public BloodRequestController(appDbContext context)
 		{
+			_context = context;
+		}
+
+		[HttpGet]
+		public async Task<IActionResult> Index(int? governorateId, int? bloodTypeId)
+		{
+			var requestsQuery = _context.BloodRequests
+				.Include(r => r.Requester)         
+				.Include(r => r.BloodType)         
+				.Include(r => r.HospitalGovernorate)  
+				.Include(r => r.HospitalCity)         
+				.Where(r => r.Status == RequestStatus.Open) 
+				.AsQueryable();
+
+			if (governorateId.HasValue && governorateId > 0)
+			{
+				requestsQuery = requestsQuery.Where(r => r.HospitalGovernorateId == governorateId);
+			}
+
+			if (bloodTypeId.HasValue && bloodTypeId > 0)
+			{
+				requestsQuery = requestsQuery.Where(r => r.BloodTypeId == bloodTypeId);
+			}
+
+			var requests = await requestsQuery
+				.OrderByDescending(r => r.RequestDate)
+				.ToListAsync();
+
+			// 5. تجهيز البيانات للـ Dropdowns في الـ View للفلترة
+			ViewBag.Governorates = new SelectList(await _context.Governorates.ToListAsync(), "Id", "Name", governorateId);
+			ViewBag.BloodTypes = new SelectList(await _context.BloodTypes.ToListAsync(), "Id", "Name", bloodTypeId);
+
+			return View(requests);
+		}
+		[Authorize]
+		[HttpGet]
+		public async Task<IActionResult> Create()
+		{
+			// تجهيز المحافظات وفصائل الدم للـ Dropdowns
+			ViewBag.Governorates = await _context.Governorates.ToListAsync();
+			ViewBag.BloodTypes = await _context.BloodTypes.ToListAsync();
+
 			return View();
+		}
+		[Authorize]
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Create(BloodRequest model)
+		{
+			var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+			if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
+			{
+				return RedirectToAction("Login", "Account");
+			}
+
+			if (ModelState.IsValid)
+			{
+				model.RequesterId = userId; 
+				model.RequestDate = DateTime.Now; 
+				model.Status = RequestStatus.Open; 
+
+				_context.BloodRequests.Add(model);
+				await _context.SaveChangesAsync();
+
+				TempData["SuccessMessage"] = "Your blood request has been posted successfully.";
+				return RedirectToAction(nameof(Index));
+			}
+
+			// لو حصل مشكلة في الـ Validation بنرجع نملا الـ ViewBags تاني عشان الـ View ميضربش
+			ViewBag.Governorates = await _context.Governorates.ToListAsync();
+			ViewBag.BloodTypes = await _context.BloodTypes.ToListAsync();
+
+			return View(model);
+		}
+		[Authorize]
+		[HttpGet]
+		public async Task<IActionResult> Details(int id)
+		{
+			var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (!int.TryParse(userIdString, out int userId))
+			{
+				return RedirectToAction("Login", "Account");
+			}
+
+			var bloodRequest = await _context.BloodRequests
+				.Include(r => r.BloodType)
+				.Include(r => r.HospitalGovernorate)
+				.Include(r => r.HospitalCity)
+				.Include(r => r.Requester)
+				.Include(r => r.DonationOffers)
+					.ThenInclude(o => o.Donor)
+				.FirstOrDefaultAsync(r => r.Id == id);
+
+			if (bloodRequest == null)
+			{
+				return NotFound();
+			}
+
+			// 3. تحديد هل الشخص اللي فاتح هو صاحب الريكويست أم لا
+			ViewBag.IsRequester = (bloodRequest.RequesterId == userId);
+
+			// 4. تشيك إضافي: هل اليوزر الحالي قدم عرض تبرع قبل كدة للطلب ده؟
+			// دي هتفيدك في الـ View عشان لو قدم "Donate" ميبينلوش الزرار تاني
+			ViewBag.AlreadyOffered = bloodRequest.DonationOffers.Any(o => o.DonorId == userId);
+
+			return View(bloodRequest);
+		}
+		[Authorize]
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> ClickDonate(int requestId)
+		{
+			var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (!int.TryParse(userIdString, out int userId))
+			{
+				return RedirectToAction("Login", "Account");
+			}
+
+			var user = await _context.Users.FindAsync(userId);
+			if (user == null) return NotFound();
+
+			if (user.BloodTypeId == null)
+			{
+				TempData["ErrorMessage"] = "You must register your blood type before donating.";
+				return RedirectToAction("UpdateBloodType", "Account");
+			}
+
+			if (user.LastDonationDate.HasValue)
+			{
+				var threeMonthsAgo = DateTime.Now.AddMonths(-3);
+
+				if (user.LastDonationDate.Value > threeMonthsAgo)
+				{
+					TempData["ErrorMessage"] = "For your safety, 3 months must pass since your last donation before you can donate again.";
+					return RedirectToAction("Details", new { id = requestId });
+				}
+			}
+
+			var request = await _context.BloodRequests
+				.Include(r => r.DonationOffers)
+				.FirstOrDefaultAsync(r => r.Id == requestId);
+
+			if (request == null || request.Status != RequestStatus.Open)
+			{
+				TempData["ErrorMessage"] = "This request is closed or no longer available.";
+				return RedirectToAction("Index");
+			}
+
+			if (request.RequesterId == userId)
+			{
+				TempData["ErrorMessage"] = "You cannot donate to your own request.";
+				return RedirectToAction("Details", new { id = requestId });
+			}
+
+			if (request.DonationOffers.Any(o => o.DonorId == userId))
+			{
+				TempData["ErrorMessage"] = "You have already offered to donate for this request.";
+				return RedirectToAction("Details", new { id = requestId });
+			}
+
+			var newOffer = new DonationOffer
+			{
+				DonorId = userId,
+				BloodRequestId = requestId,
+				OfferDate = DateTime.Now
+			};
+
+			_context.DonationOffers.Add(newOffer);
+			await _context.SaveChangesAsync();
+
+			TempData["SuccessMessage"] = "Thank you! Your intent to donate has been registered successfully.";
+			return RedirectToAction("Details", new { id = requestId });
+		}
+		[Authorize]
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> CloseRequest(int requestId, int selectedDonorId)
+		{
+			var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			if (!int.TryParse(userIdString, out int userId))
+			{
+				return RedirectToAction("Login", "Account");
+			}
+
+			var request = await _context.BloodRequests
+				.Include(r => r.DonationOffers)
+				.FirstOrDefaultAsync(r => r.Id == requestId);
+
+			if (request == null) return NotFound();
+
+			if (request.RequesterId != userId)
+			{
+				TempData["ErrorMessage"] = "You do not have permission to close this request.";
+				return RedirectToAction("Index");
+			}
+
+			if (request.Status != RequestStatus.Open)
+			{
+				TempData["ErrorMessage"] = "This request is already closed or fulfilled.";
+				return RedirectToAction("Details", new { id = requestId });
+			}
+
+			bool isActualDonor = request.DonationOffers.Any(o => o.DonorId == selectedDonorId);
+			if (!isActualDonor)
+			{
+				TempData["ErrorMessage"] = "The selected user did not offer to donate for this request.";
+				return RedirectToAction("Details", new { id = requestId });
+			}
+
+			var donor = await _context.Users.FindAsync(selectedDonorId);
+			if (donor == null) return NotFound();
+
+			request.Status = RequestStatus.Fulfilled;
+
+			request.SelectedDonorId = selectedDonorId;
+
+			donor.LastDonationDate = DateTime.Now;
+
+			await _context.SaveChangesAsync();
+
+			TempData["SuccessMessage"] = "Request fulfilled successfully! Thank you and the donor for saving a life.";
+			return RedirectToAction("Details", new { id = requestId });
 		}
 	}
 }
