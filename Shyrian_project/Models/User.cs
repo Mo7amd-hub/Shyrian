@@ -56,7 +56,7 @@ namespace Shyrian_project.Models
         public virtual Governorate Governorate { get; set; }
 
         
-        public string DocumentPath { get; set; } // path of the uploaded document
+        public string? DocumentPath { get; set; } // path of the uploaded document
 
         public VerificationStatus Status { get; set; } = VerificationStatus.NotSubmitted; // Default value when user registers
 
