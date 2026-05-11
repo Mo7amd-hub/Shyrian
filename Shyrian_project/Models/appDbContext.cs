@@ -3,7 +3,7 @@ using Shyrian_project.Models;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace firstSection.Models
+namespace Shyrian_project.Models
 {
     public class appDbContext : DbContext
     {
