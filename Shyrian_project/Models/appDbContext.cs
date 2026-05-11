@@ -15,6 +15,7 @@ namespace Shyrian_project.Models
         public DbSet<User> Users { get; set; }
         public DbSet<BloodRequest> BloodRequests { get; set; }
         public DbSet<DonationOffer> DonationOffers { get; set; }
+        public DbSet<Admin> Admins { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,4 +1,4 @@
-using firstSection.Models;
+using Shyrian_project.Models;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
