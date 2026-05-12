@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Administration Control Panel";
+}
+
+<div class="container mt-4" dir="rtl" style="text-align: right;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-secondary">Welcome to the control panel <b>Shyrian</b></h2>
+        <a asp-controller="Admin" asp-action="Logout" class="btn btn-outline-danger">Logout</a>
+    </div>
+    <hr />
+
+    <div class="row mt-4 text-center">
+        
+        <div class="col-md-4 mb-4">
+            <div class="card bg-primary text-white shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Total users</div>
+                            <div class="h1 mb-0 font-weight-bold">@ViewBag.TotalUsers</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card bg-warning text-dark shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Pending documentation requests</div>
+                            <div class="h1 mb-0 font-weight-bold">@ViewBag.PendingVerifications</div>
+                            <a asp-action="VerificationRequests" class="btn btn-dark btn-sm mt-3 w-75">Review Requests</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card bg-danger text-white shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-uppercase mb-1">Active blood requests</div>
+                            <div class="h1 mb-0 font-weight-bold">@ViewBag.ActiveRequests</div>
+                            <a asp-action="ManageRequests" class="btn btn-light btn-sm mt-3 w-75 text-danger">Requests Management</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

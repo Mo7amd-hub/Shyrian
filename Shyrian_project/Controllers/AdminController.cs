@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Shyrian_project.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Shyrian_project.Controllers
 {
@@ -40,10 +41,11 @@ namespace Shyrian_project.Controllers
                     new Claim(ClaimTypes.Role, "Admin")
                 };
 
-                var identity = new ClaimsIdentity(claims, "CookieAuth");
+                
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
 
-                await HttpContext.SignInAsync("CookieAuth", principal);
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
                 return RedirectToAction("Dashboard");
             }
 
@@ -124,7 +126,7 @@ namespace Shyrian_project.Controllers
 
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync("CookieAuth");
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
         }
     }

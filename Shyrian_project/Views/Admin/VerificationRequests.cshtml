@@ -1,0 +1,59 @@
+﻿@model IEnumerable<Shyrian_project.Models.User>
+@{
+    ViewData["Title"] = "Verification Requests";
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-secondary">Pending Verifications</h2>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+    
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Email</th>
+                        <th>Blood Type</th>
+                        <th>Proof Document</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">No pending verification requests at the moment.</td>
+                        </tr>
+                    }
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td class="align-middle">@user.Email</td>
+                            <td class="align-middle">@(user.BloodType != null ? user.BloodType.Name : "N/A")</td>
+                            <td class="align-middle">
+                                <a href="/uploads/@user.DocumentPath" target="_blank" class="btn btn-sm btn-info text-white">
+                                    View Document
+                                </a>
+                            </td>
+                            <td class="align-middle text-center">
+                                <form asp-action="UpdateStatus" method="post" style="display:inline-block;">
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <input type="hidden" name="isApproved" value="true" />
+                                    <button type="submit" class="btn btn-success btn-sm px-3">Approve</button>
+                                </form>
+                                
+                                <form asp-action="UpdateStatus" method="post" style="display:inline-block;">
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <input type="hidden" name="isApproved" value="false" />
+                                    <button type="submit" class="btn btn-danger btn-sm px-3">Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
