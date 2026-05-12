@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shyrian_project.Models;
 
@@ -11,9 +12,11 @@ using Shyrian_project.Models;
 namespace Shyrian_project.Migrations
 {
     [DbContext(typeof(appDbContext))]
-    partial class appDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260512080718_update_database2")]
+    partial class update_database2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
