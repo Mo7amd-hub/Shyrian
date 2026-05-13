@@ -1,0 +1,108 @@
+﻿@model Shyrian_project.Models.BloodRequestViewModel
+@{
+    ViewData["Title"] = "Request Blood";
+}
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-danger text-white py-3">
+                    <h4 class="mb-0">Post a Blood Request</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                        <div class="form-group mb-3">
+                            <label class="fw-bold mb-1">Required Blood Type</label>
+                            <select asp-for="BloodTypeId" class="form-select" required>
+                                <option value="">-- Select Blood Type --</option>
+                                @foreach (var bt in ViewBag.BloodTypes)
+                                {
+                                    <option value="@bt.Id">@bt.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-4 mt-3">
+                            <label asp-for="PatientName" class="fw-bold mb-1">Patient Name</label>
+                            <input asp-for="PatientName" class="form-control" required placeholder="e.g. Ahmed Mohamed" />
+                            <span asp-validation-for="PatientName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-4 mt-3">
+                            <label asp-for="ContactNumber" class="fw-bold mb-1">Contact Number (For Donors)</label>
+                            <input asp-for="ContactNumber" class="form-control" required placeholder="e.g. 01012345678" />
+                            <span asp-validation-for="ContactNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-3">
+                                <label class="fw-bold mb-1">Hospital Governorate</label>
+                                <select asp-for="HospitalGovernorateId" class="form-select" id="governorateDropdown" required>
+                                    <option value="">-- Select Governorate --</option>
+                                    @foreach (var gov in ViewBag.Governorates)
+                                    {
+                                        <option value="@gov.Id">@gov.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 form-group mb-3">
+                                <label class="fw-bold mb-1">Hospital City</label>
+                                <select asp-for="HospitalCityId" class="form-select" id="cityDropdown" required>
+                                    <option value="">-- Select City First --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="HospitalName" class="fw-bold mb-1">Hospital Name</label>
+                            <input asp-for="HospitalName" class="form-control" required placeholder="e.g. Al-Qasr Al-Ainy" />
+                        </div>
+
+                        <div class="form-group mb-4 mt-3">
+                            <label asp-for="HospitalAddress" class="fw-bold mb-1">Detailed Hospital Address</label>
+                            <input asp-for="HospitalAddress" class="form-control" required placeholder="e.g. 15 El-Galaa St, Floor 3, Room 12" />
+                            <span asp-validation-for="HospitalAddress" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+                            <button type="submit" class="btn btn-danger px-4">Post Request</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+        $("#governorateDropdown").change(function () {
+        var govId = $(this).val();
+        var cityDropdown = $("#cityDropdown");
+                
+        cityDropdown.empty();
+        cityDropdown.append('<option value="">-- Select City --</option>');
+
+        if (govId) {
+        // بنستخدم نفس الـ API اللي عملتوه في الـ Account Controller
+        $.ajax({
+        url: '/Account/GetCities',
+        type: 'GET',
+        data: { governorateId: govId },
+        success: function (data) {
+        $.each(data, function (index, item) {
+        cityDropdown.append($('<option></option>').val(item.id).text(item.name));
+        });
+        }
+        });
+        }
+        });
+        });
+    </script>
+}

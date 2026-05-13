@@ -30,6 +30,8 @@ namespace Shyrian_project.Controllers
         public IActionResult Register()
         {
             ViewBag.Governorates = _context.Governorates.ToList();
+            ViewBag.BloodTypes = _context.BloodTypes.ToList();
+
             return View();
         }
         [HttpPost]
@@ -83,6 +85,7 @@ namespace Shyrian_project.Controllers
                 return RedirectToAction("Login");
             }
             ViewBag.Governorates = _context.Governorates.ToList();
+            ViewBag.BloodTypes = _context.BloodTypes.ToList();
             return View(model);
         }
         public JsonResult GetCities(int governorateId)
@@ -162,6 +165,8 @@ namespace Shyrian_project.Controllers
                 .Include(u => u.Governorate)
                 .Include(u => u.City)
                 .Include(u => u.MyRequests)
+                .Include(u => u.DonationOffers) // التبرعات اللي قدمها لغيره
+                    .ThenInclude(o => o.BloodRequest) // عشان نجيب بيانات الطلب اللي اتبرع فيه
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
@@ -175,10 +180,14 @@ namespace Shyrian_project.Controllers
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 BloodTypeName = user.BloodType != null ? user.BloodType.Name : "Not Specified",
+                BloodTypeId = user.BloodTypeId, // ضيف السطر ده هنا
                 Location = $"{user.Governorate?.Name} - {user.City?.Name}",
                 Status = user.Status,
                 LastDonationDate = user.LastDonationDate,
-                RequestHistory = user.MyRequests.OrderByDescending(r => r.Id).ToList()
+                RequestHistory = user.MyRequests.OrderByDescending(r => r.Id).ToList(),
+                DonationHistory = user.DonationOffers
+                .Where(o => o.BloodRequest.SelectedDonorId == userId && o.BloodRequest.Status == RequestStatus.Fulfilled)
+                .OrderByDescending(o => o.OfferDate).ToList() // تعبئة التبرعات
             };
 
             return View(profileVM);
@@ -188,8 +197,23 @@ namespace Shyrian_project.Controllers
         [HttpGet]
         public async Task<IActionResult> UpdateBloodType()
         {
+            // 1. نجيب الـ ID بتاع اليوزر الحالي
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out int userId)) return RedirectToAction("Login");
+
+            // 2. نجيب بيانات اليوزر من الداتابيز
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound();
+
+            // 3. نملا الـ ViewModel بالبيانات الحالية (عشان الـ View يعرف إن فيه فصيلة)
+            var model = new UpdateBloodTypeViewModel
+            {
+                BloodTypeId = user.BloodTypeId ?? 0 // لو null هتبقى 0، لو موجودة هتاخد الـ ID بتاعها
+            };
+
             ViewBag.BloodTypes = await _context.BloodTypes.ToListAsync();
-            return View();
+
+            return View(model); // مهم جداً نبعت الـ model هنا
         }
 
 
@@ -198,12 +222,6 @@ namespace Shyrian_project.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateBloodType(UpdateBloodTypeViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                ViewBag.BloodTypes = await _context.BloodTypes.ToListAsync();
-                return View(model); 
-            }
-
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int userId))
             {
@@ -216,11 +234,32 @@ namespace Shyrian_project.Controllers
                 return NotFound();
             }
 
-            bool isBloodTypeChanged = user.BloodTypeId != model.BloodTypeId;
+            // 1. منع تغيير الفصيلة لو كانت مسجلة مسبقاً
+            if (user.BloodTypeId != null && user.BloodTypeId != model.BloodTypeId)
+            {
+                TempData["ErrorMessage"] = "Security Alert: You cannot change your blood type once it is set.";
+                return RedirectToAction("Profile");
+            }
 
-            if (isBloodTypeChanged)
+            // 2. التحقق من صحة البيانات (Validation)
+            if (!ModelState.IsValid)
+            {
+                ViewBag.BloodTypes = await _context.BloodTypes.ToListAsync();
+                return View(model);
+            }
+
+            // 3. تحديث الفصيلة لأول مرة فقط
+            bool isBloodTypeFirstTimeSet = user.BloodTypeId == null && model.BloodTypeId != 0;
+            if (isBloodTypeFirstTimeSet)
             {
                 user.BloodTypeId = model.BloodTypeId;
+                user.Status = VerificationStatus.NotSubmitted;
+            }
+
+            // 4. معالجة رفع الملف (المستند الطبي)
+            if (model.DocumentFile != null && model.DocumentFile.Length > 0)
+            {
+                // حذف الملف القديم إن وجد لتوفير المساحة
                 if (!string.IsNullOrEmpty(user.DocumentPath))
                 {
                     var oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, "documents", user.DocumentPath);
@@ -229,21 +268,8 @@ namespace Shyrian_project.Controllers
                         System.IO.File.Delete(oldFilePath);
                     }
                 }
-                user.DocumentPath = null;
 
-                user.Status = VerificationStatus.NotSubmitted;
-            }
-
-
-            if (model.DocumentFile != null && model.DocumentFile.Length > 0)
-            {
-
-                if (!isBloodTypeChanged && !string.IsNullOrEmpty(user.DocumentPath))
-                {
-                    var oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, "documents", user.DocumentPath);
-                    if (System.IO.File.Exists(oldFilePath)) System.IO.File.Delete(oldFilePath);
-                }
-
+                // إعداد المسار وحفظ الملف الجديد
                 string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "documents");
                 if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
 
@@ -256,12 +282,14 @@ namespace Shyrian_project.Controllers
                 }
 
                 user.DocumentPath = uniqueFileName;
-
-                user.Status = VerificationStatus.Pending;
+                user.Status = VerificationStatus.Pending; // الحالة تصبح معلقة للمراجعة
             }
 
+            // 5. حفظ التغييرات في قاعدة البيانات
             await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Your blood type and document have been submitted successfully and are pending verification.";
+
+            // 6. التوجيه النهائي للبروفايل مع رسالة النجاح
+            TempData["SuccessMessage"] = "Changes saved successfully! Your profile is now pending admin verification.";
             return RedirectToAction("Profile");
         }
     }

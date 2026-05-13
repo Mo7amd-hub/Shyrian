@@ -12,8 +12,8 @@ using Shyrian_project.Models;
 namespace Shyrian_project.Migrations
 {
     [DbContext(typeof(appDbContext))]
-    [Migration("20260512080718_update_database2")]
-    partial class update_database2
+    [Migration("20260513144150_initial_create")]
+    partial class initial_create
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

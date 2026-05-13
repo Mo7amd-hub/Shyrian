@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+namespace Shyrian_project.Models;
 
 public class RegisterViewModel
 {
@@ -18,6 +19,12 @@ public class RegisterViewModel
     [DataType(DataType.Password)]
     [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters")]
     public string Password { get; set; }
+
+    [Required(ErrorMessage = "Please confirm your password")]
+    [DataType(DataType.Password)]
+    [Display(Name = "Confirm Password")]
+    [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+    public string ConfirmPassword { get; set; }
 
     [Required(ErrorMessage = "Phone number is Required")]
     [RegularExpression(@"^01[0125][0-9]{8}$", ErrorMessage = "Enter a valid Number")]

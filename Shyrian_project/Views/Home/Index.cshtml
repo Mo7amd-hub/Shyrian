@@ -1,8 +1,79 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Welcome to Shyrian";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<!-- Hero Section (البانر الرئيسي) -->
+<div class="bg-danger text-white py-5 mb-5 text-center shadow-sm">
+    <div class="container py-5">
+        <h1 class="display-4 fw-bold mb-3">Save a Life, Give Blood</h1>
+        <p class="lead mb-4 fw-light">
+            Shyrian connects blood donors directly with those in urgent need. <br />
+            Every drop counts. Join our community of heroes today.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a asp-controller="Account" asp-action="Register" class="btn btn-light btn-lg text-danger fw-bold px-4">Become a Donor</a>
+            <a asp-controller="BloodRequest" asp-action="Index" class="btn btn-outline-light btn-lg px-4">Find Blood Requests</a>
+        </div>
+    </div>
+</div>
+
+<!-- Live Statistics Section (الإحصائيات الحية) -->
+<div class="container mb-5">
+    <div class="row text-center g-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 py-4">
+                <div class="card-body">
+                    <i class="bi bi-people-fill text-primary display-4 mb-3 d-block"></i>
+                    <h2 class="fw-bold text-dark display-5">@ViewBag.TotalUsers</h2>
+                    <p class="text-muted text-uppercase mb-0">Registered Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 py-4">
+                <div class="card-body">
+                    <i class="bi bi-heart-pulse-fill text-danger display-4 mb-3 d-block"></i>
+                    <h2 class="fw-bold text-dark display-5">@ViewBag.FulfilledRequests</h2>
+                    <p class="text-muted text-uppercase mb-0">Lives Saved</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 py-4">
+                <div class="card-body">
+                    <i class="bi bi-activity text-warning display-4 mb-3 d-block"></i>
+                    <h2 class="fw-bold text-dark display-5">@ViewBag.ActiveRequests</h2>
+                    <p class="text-muted text-uppercase mb-0">Urgent Requests</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How it Works Section (كيف يعمل الموقع) -->
+<div class="container mb-5 py-4">
+    <h3 class="text-center fw-bold mb-5 text-secondary">How Shyrian Works</h3>
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <div class="rounded-circle bg-danger text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                1
+            </div>
+            <h5 class="fw-bold">Register</h5>
+            <p class="text-muted px-3">Create an account and verify your blood type to join our trusted donor network.</p>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="rounded-circle bg-danger text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                2
+            </div>
+            <h5 class="fw-bold">Find Requests</h5>
+            <p class="text-muted px-3">Browse urgent blood requests in your governorate or city.</p>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="rounded-circle bg-danger text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                3
+            </div>
+            <h5 class="fw-bold">Donate</h5>
+            <p class="text-muted px-3">Click 'Donate' and connect with the requester to save a life at the specified hospital.</p>
+        </div>
+    </div>
 </div>

@@ -1,0 +1,68 @@
+﻿@model Shyrian_project.Models.UpdateBloodTypeViewModel
+@{
+    ViewData["Title"] = "Update Verification Document";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-danger text-white py-3">
+                    <h5 class="mb-0">Update Blood Type & Verification</h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted mb-4">
+                        Uploading a new document will set your verification status to Pending until an Admin reviews it.
+                    </p>
+
+                    <form asp-action="UpdateBloodType" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="form-group mb-4">
+                            <label class="fw-bold mb-1">Blood Type</label>
+                            
+                            @* التعديل الجوهري هنا: لو الموديل جاي فيه ID للفصيلة، بنقفلها *@
+                            @if (Model != null && Model.BloodTypeId > 0)
+                            {
+                                <div class="alert alert-light border d-flex justify-content-between align-items-center shadow-sm">
+                                    <span class="fw-bold text-danger">
+                                        <i class="bi bi-droplet-fill"></i>
+                                        @* بنطلع اسم الفصيلة من الـ ViewBag *@
+                                        @((ViewBag.BloodTypes as List<BloodType>)?.FirstOrDefault(b => b.Id == Model.BloodTypeId)?.Name)
+                                    </span>
+                                    <span class="badge bg-secondary"><i class="bi bi-lock-fill"></i> Locked</span>
+                                </div>
+                                @* مهم جداً نبعت الـ ID مخفي عشان الكنترولر يعرف يحفظ الملف صح *@
+                                <input type="hidden" asp-for="BloodTypeId" />
+                            }
+                            else
+                            {
+                                <select asp-for="BloodTypeId" class="form-select border-danger" required>
+                                    <option value="">-- Choose your Blood Type --</option>
+                                    @foreach (var bt in ViewBag.BloodTypes)
+                                    {
+                                        <option value="@bt.Id">@bt.Name</option>
+                                    }
+                                </select>
+                                <p class="text-danger small fw-bold mt-2">
+                                    <i class="bi bi-exclamation-triangle"></i> Note: You won't be able to change this later!
+                                </p>
+                            }
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="fw-bold mb-1">Upload Medical Proof</label>
+                            <input asp-for="DocumentFile" type="file" class="form-control" accept="image/*,.pdf" />
+                            <small class="text-muted">Upload a clear photo of your lab test or ID.</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Profile" class="btn btn-outline-secondary px-4">Cancel</a>
+                            <button type="submit" class="btn btn-danger px-4">Submit for Review</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

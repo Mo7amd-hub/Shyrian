@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace Shyrian_project.Models;
+using System.ComponentModel.DataAnnotations;
 
 public class LoginViewModel
 {

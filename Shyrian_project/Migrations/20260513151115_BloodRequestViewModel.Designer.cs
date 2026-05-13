@@ -12,8 +12,8 @@ using Shyrian_project.Models;
 namespace Shyrian_project.Migrations
 {
     [DbContext(typeof(appDbContext))]
-    [Migration("20260511093734_update_name_space")]
-    partial class update_name_space
+    [Migration("20260513151115_BloodRequestViewModel")]
+    partial class BloodRequestViewModel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -494,7 +494,6 @@ namespace Shyrian_project.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("DocumentPath")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")

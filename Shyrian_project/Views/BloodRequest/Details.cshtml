@@ -1,0 +1,148 @@
+﻿@model Shyrian_project.Models.BloodRequest
+@{
+    ViewData["Title"] = "Request Details";
+    bool isRequester = ViewBag.IsRequester ?? false;
+    bool alreadyOffered = ViewBag.AlreadyOffered ?? false;
+}
+
+<div class="container mt-5">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- تفاصيل الطلب -->
+        <div class="col-md-5 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-danger text-white py-3">
+                    <h5 class="mb-0">Urgent: Blood Needed</h5>
+                </div>
+                <div class="card-body">
+                    <h2 class="text-danger fw-bold text-center mb-4">@Model.BloodType?.Name</h2>
+                    <ul class="list-group list-group-flush mb-4">
+                        <li class="list-group-item px-0"><strong>Patient Name:</strong> @Model.PatientName</li>
+                        <li class="list-group-item px-0"><strong>Hospital:</strong> @Model.HospitalName</li>
+                        <li class="list-group-item px-0"><strong>Location:</strong> @Model.HospitalGovernorate?.Name, @Model.HospitalCity?.Name</li>
+                        <li class="list-group-item px-0"><strong>Detailed Address:</strong> @Model.HospitalAddress</li>
+                        <li class="list-group-item px-0"><strong>Contact Number:</strong> <a href="tel:@Model.ContactNumber" class="text-danger fw-bold text-decoration-none">@Model.ContactNumber</a></li>
+                        <li class="list-group-item px-0"><strong>Date Posted:</strong> @Model.RequestDate.ToString("MMMM dd, yyyy")</li>
+                        <li class="list-group-item px-0"><strong>Requester:</strong> @Model.Requester?.FullName</li>
+                        <li class="list-group-item px-0">
+                            <strong>Status:</strong>
+                            @if (Model.Status == RequestStatus.Open)
+                            {
+                                <span class="badge bg-success">Open</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Fulfilled</span>
+                            }
+                        </li>
+                    </ul>
+
+                    <!-- الأزرار حسب نوع المستخدم -->
+                    @if (Model.Status == RequestStatus.Open)
+                    {
+                        if (isRequester)
+                        {
+                            <div class="alert alert-info text-center mb-0">
+                                This is your request. Review offers below.
+                            </div>
+                        }
+                        else
+                        {
+                            if (alreadyOffered)
+                            {
+                                <button class="btn btn-secondary w-100 py-2" disabled>You have already offered to donate</button>
+                                <small class="text-muted d-block text-center mt-2">Waiting for the requester to contact you.</small>
+                            }
+                            else
+                            {
+                                <form asp-action="ClickDonate" method="post" onsubmit="return confirm('Are you sure you are ready and eligible to donate?');">
+                                    <input type="hidden" name="requestId" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-danger w-100 py-2 fw-bold">I Want To Donate</button>
+                                </form>
+                            }
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- قائمة عروض التبرع (تظهر لصاحب الطلب فقط) -->
+        <div class="col-md-7">
+            @if (isRequester)
+            {
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 text-secondary">Donation Offers (@Model.DonationOffers.Count)</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        @if (!Model.DonationOffers.Any())
+                        {
+                            <div class="p-5 text-center text-muted">
+                                <h6>No one has offered to donate yet.</h6>
+                                <p>We will notify you once a donor clicks "Donate".</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Donor Name</th>
+                                        <th>Phone</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var offer in Model.DonationOffers)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold">@offer.Donor?.FullName</td>
+                                            <td>@offer.Donor?.PhoneNumber</td>
+                                            <td class="text-center">
+                                                @if (Model.Status == RequestStatus.Open)
+                                                {
+                                                    <!-- فورم إغلاق الطلب واختيار هذا المتبرع -->
+                                                    <form asp-action="CloseRequest" method="post" onsubmit="return confirm('Confirm that this donor successfully gave blood? This will close the request.');">
+                                                        <input type="hidden" name="requestId" value="@Model.Id" />
+                                                        <input type="hidden" name="selectedDonorId" value="@offer.DonorId" />
+                                                        <button type="submit" class="btn btn-success btn-sm">Confirm & Close</button>
+                                                    </form>
+                                                }
+                                                else if (Model.SelectedDonorId == offer.DonorId)
+                                                {
+                                                    <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Hero</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- لو اليوزر مش صاحب الطلب، ممكن نعرضله صورة تشجيعية أو نصيحة طبية -->
+                <div class="card shadow-sm border-0 h-100 bg-light justify-content-center align-items-center p-5 text-center">
+                    <h4 class="text-danger mb-3">Save a Life Today</h4>
+                    <p class="text-muted mb-0">Your single donation can save up to three lives. Thank you for making a difference.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

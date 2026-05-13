@@ -3,49 +3,30 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Shyrian_project.Models
 {
-    public class BloodRequest
+    public class BloodRequestViewModel
     {
-        [Key]
-        public int Id { get; set; }
-
-        
-        [Required]
-        [ForeignKey("Requester")]
-        public int RequesterId { get; set; }
-        [InverseProperty("MyRequests")] // عشان نميزها عن علاقة المتبرع في الداتابيز
-        public virtual User Requester { get; set; }
-
-
-
         [Required(ErrorMessage = "Enter patient name")]
         [Display(Name = "patient name")]
         public string PatientName { get; set; }
 
 
         [Required(ErrorMessage = "Enter the Required blood type")]
-        [ForeignKey("BloodType")]
         [Display(Name = "blodd type")]
         public int BloodTypeId { get; set; }
-        public virtual BloodType BloodType { get; set; }
 
 
 
         [Required(ErrorMessage = "choose the Hospital Governorate")]
-        [ForeignKey("HospitalGovernorateId")]
         [Display(Name = "Hospital Governorate")]
         public int HospitalGovernorateId { get; set; }
-        public virtual Governorate HospitalGovernorate { get; set; }
 
 
 
         [Required(ErrorMessage = "choose the Hospital City")]
-        [ForeignKey("HospitalCityId")]
         [Display(Name = "Hospital City")]
         public int HospitalCityId { get; set; }
-        public virtual City HospitalCity { get; set; }
 
 
-        
         [Required(ErrorMessage = "Enter the Hospital Name")]
         [StringLength(50)]
         [Display(Name = "Hospital Name")]
@@ -64,30 +45,5 @@ namespace Shyrian_project.Models
         public string ContactNumber { get; set; }
 
 
-
-        [Display(Name = "Request date")]
-        public DateTime RequestDate { get; set; } = DateTime.Now;
-
-
-
-        [Display(Name = "Request status")]
-        public RequestStatus Status { get; set; } = RequestStatus.Open;
-
-
-
-        // the selected donor for this request (the one who accepted to donate)
-        [ForeignKey("SelectedDonor")]
-        public int? SelectedDonorId { get; set; }
-        public virtual User SelectedDonor { get; set; }
-
-        public virtual ICollection<DonationOffer> DonationOffers { get; set; }
-    }
-
-    
-    public enum RequestStatus
-    {
-        Open,
-        Closed,
-        Fulfilled
     }
 }

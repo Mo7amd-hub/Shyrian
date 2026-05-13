@@ -1,0 +1,157 @@
+﻿@model Shyrian_project.Models.ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="container mt-5">
+    <!-- Success Message from TempData -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <!-- Personal Info Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <img src="~/images/default-avatar.png" class="rounded-circle mb-3" width="120" alt="Avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'" />
+                    <h4>@Model.FullName</h4>
+                    <p class="text-muted mb-1">@Model.Email</p>
+                    <p class="text-muted mb-3">@Model.Location</p>
+                    
+                    <span class="badge @(Model.Status.ToString() == "Verified" ? "bg-success" : "bg-warning text-dark") p-2 mb-3">
+                        Status: @Model.Status
+                    </span>
+
+                    <hr />
+                    <div class="d-flex justify-content-between text-start mb-2">
+                        <span class="fw-bold">Blood Type:</span>
+                        <span class="text-danger fw-bold">@Model.BloodTypeName</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-start mb-2">
+                        <span class="fw-bold">Phone:</span>
+                        <span>@Model.PhoneNumber</span>
+                    </div>
+                    
+                    <div class="mt-4">
+                        @if (string.IsNullOrEmpty(Model.BloodTypeName) || Model.BloodTypeName == "Not Specified")
+                        {
+                            <!-- الحالة 1: معندوش فصيلة دم -->
+                            <a asp-action="UpdateBloodType" class="btn btn-danger w-100 mb-2">Add Blood Type</a>
+                            <p class="text-danger small fw-bold text-center">
+                                <i class="bi bi-exclamation-triangle"></i> Note: Once chosen, you cannot change it!
+                            </p>
+                        }
+                        else if (Model.Status != Shyrian_project.Models.VerificationStatus.Verified)
+                        {
+                            <!-- الحالة 2: عنده فصيلة بس لسه متبعرتش أو "Pending" أو "Rejected" -->
+                            <a asp-action="UpdateBloodType" class="btn btn-outline-success w-100 mb-2">
+                                <i class="bi bi-file-earmark-arrow-up"></i>
+                                @(Model.Status == Shyrian_project.Models.VerificationStatus.Rejected ? "Re-upload Proof" : "Verify Account")
+                            </a>
+                        }
+                        else
+                        {
+                            <!-- الحالة 3: الحساب موثق فعلاً - إخفاء الزرار وعرض علامة التوثيق -->
+                            <div class="alert alert-success py-2 text-center shadow-sm">
+                                <i class="bi bi-patch-check-fill"></i> Account Verified
+                            </div>
+                        }
+    
+                        <form asp-action="Logout" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-secondary w-100 mt-2">Log Out</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Request & Donation History Section -->
+        <div class="col-md-8">
+            <!-- My Blood Request History -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-secondary">My Blood Request History</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.RequestHistory == null || !Model.RequestHistory.Any())
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-muted">You have not made any requests yet.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var req in Model.RequestHistory)
+                                {
+                                    <tr>
+                                        <td>#@req.Id</td>
+                                        <td>@req.RequestDate.ToString("MMM dd, yyyy")</td>
+                                        <td>
+                                            <span class="badge bg-secondary">@req.Status</span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- My Blood Donation History -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-secondary">My Blood Donation History</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Request ID</th>
+                                <th>Offer Date</th>
+                                <th>Hospital</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.DonationHistory == null || !Model.DonationHistory.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">You haven't offered to donate yet.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var offer in Model.DonationHistory)
+                                {
+                                    <tr>
+                                        <td>#@offer.BloodRequestId</td>
+                                        <td>@offer.OfferDate.ToString("MMM dd, yyyy")</td>
+                                        <td>@offer.BloodRequest?.HospitalName</td>
+                                        <td>
+                                            <span class="badge bg-success">Completed</span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,84 @@
+﻿@model IEnumerable<Shyrian_project.Models.BloodRequest>
+@{
+    ViewData["Title"] = "Blood Requests";
+}
+
+<div class="container mt-5">
+    <!-- إشعارات النجاح أو الخطأ -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-secondary">Open Blood Requests</h2>
+        <a asp-action="Create" class="btn btn-danger"> + Request Blood</a>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="card shadow-sm border-0 mb-4 bg-light">
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row gx-3 gy-2 align-items-center">
+                <div class="col-sm-4">
+                    <label class="visually-hidden">Governorate</label>
+                    <select name="governorateId" class="form-select" asp-items="ViewBag.Governorates">
+                        <option value="">-- All Governorates --</option>
+                    </select>
+                </div>
+                <div class="col-sm-4">
+                    <label class="visually-hidden">Blood Type</label>
+                    <select name="bloodTypeId" class="form-select" asp-items="ViewBag.BloodTypes">
+                        <option value="">-- All Blood Types --</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-dark">Filter</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Requests Grid -->
+    <div class="row">
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center py-5">
+                <h5 class="text-muted">No open requests found matching your criteria.</h5>
+            </div>
+        }
+        @foreach (var request in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="badge bg-danger fs-6 px-3 py-2">@request.BloodType?.Name</span>
+                            <small class="text-muted">@request.RequestDate.ToString("MMM dd, yyyy")</small>
+                        </div>
+                        <h5 class="card-title mt-3">Need @request.BloodType?.Name Blood</h5>
+                        <p class="card-text text-muted mb-1">
+                            <i class="bi bi-geo-alt-fill text-danger"></i> @request.HospitalGovernorate?.Name - @request.HospitalCity?.Name
+                        </p>
+                        <p class="card-text text-muted">
+                            <i class="bi bi-person-fill"></i> Requested by: @request.Requester?.FullName
+                        </p>
+                    </div>
+                    <div class="card-footer bg-white border-0 text-center pb-3">
+                        <a asp-action="Details" asp-route-id="@request.Id" class="btn btn-outline-danger w-100">View Details & Donate</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
