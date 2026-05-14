@@ -40,7 +40,6 @@
                     <div class="mt-4">
                         @if (string.IsNullOrEmpty(Model.BloodTypeName) || Model.BloodTypeName == "Not Specified")
                         {
-                            <!-- الحالة 1: معندوش فصيلة دم -->
                             <a asp-action="UpdateBloodType" class="btn btn-danger w-100 mb-2">Add Blood Type</a>
                             <p class="text-danger small fw-bold text-center">
                                 <i class="bi bi-exclamation-triangle"></i> Note: Once chosen, you cannot change it!
@@ -48,7 +47,6 @@
                         }
                         else if (Model.Status != Shyrian_project.Models.VerificationStatus.Verified)
                         {
-                            <!-- الحالة 2: عنده فصيلة بس لسه متبعرتش أو "Pending" أو "Rejected" -->
                             <a asp-action="UpdateBloodType" class="btn btn-outline-success w-100 mb-2">
                                 <i class="bi bi-file-earmark-arrow-up"></i>
                                 @(Model.Status == Shyrian_project.Models.VerificationStatus.Rejected ? "Re-upload Proof" : "Verify Account")
@@ -56,7 +54,6 @@
                         }
                         else
                         {
-                            <!-- الحالة 3: الحساب موثق فعلاً - إخفاء الزرار وعرض علامة التوثيق -->
                             <div class="alert alert-success py-2 text-center shadow-sm">
                                 <i class="bi bi-patch-check-fill"></i> Account Verified
                             </div>

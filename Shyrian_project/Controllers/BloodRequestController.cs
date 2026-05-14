@@ -7,7 +7,6 @@ using System.Security.Claims;
 
 namespace Shyrian_project.Controllers
 {
-    // طالما حطيناها هنا، مفيش داعي نكررها فوق كل دالة
     [Authorize]
     public class BloodRequestController : Controller
     {
@@ -68,15 +67,7 @@ namespace Shyrian_project.Controllers
             {
                 return RedirectToAction("Login", "Account");
             }
-            /*
-            ModelState.Remove("Requester");
-            ModelState.Remove("BloodType");
-            ModelState.Remove("HospitalGovernorate");
-            ModelState.Remove("HospitalCity");
-            ModelState.Remove("SelectedDonor");
-            ModelState.Remove("DonationOffers");
-            */
-            // السيستم هيتجاهل الكائنات هنا بسبب الـ [ValidateNever] اللي حطيناها في الموديل
+            
             if (ModelState.IsValid)
             {
                 BloodRequest bloodrequest = new BloodRequest

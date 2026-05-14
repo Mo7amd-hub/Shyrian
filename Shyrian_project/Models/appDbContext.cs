@@ -65,21 +65,18 @@ namespace Shyrian_project.Models
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // علاقة الطلب بالمتبرع النهائي اللي تم اختياره
             modelBuilder.Entity<BloodRequest>()
                 .HasOne(br => br.SelectedDonor)
                 .WithMany()
                 .HasForeignKey(br => br.SelectedDonorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // علاقة عرض التبرع بطلب الدم (لو الطلب اتمسح، امسح كل العروض اللي عليه)
             modelBuilder.Entity<DonationOffer>()
                 .HasOne(d => d.BloodRequest)
                 .WithMany(br => br.DonationOffers)
                 .HasForeignKey(d => d.BloodRequestId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // علاقة عرض التبرع باليوزر المتبرع (عشان سيكوال سيرفر ميضربش ايرور Cycles)
             modelBuilder.Entity<DonationOffer>()
                 .HasOne(d => d.Donor)
                 .WithMany(u => u.DonationOffers)
@@ -104,52 +101,42 @@ namespace Shyrian_project.Models
 
             
             modelBuilder.Entity<City>().HasData(
-                // مدن أسيوط
                 new City { Id = 1, Name = "أسيوط", GovernorateId = 1 },
                 new City { Id = 2, Name = "أسيوط الجديدة", GovernorateId = 1 },
                 new City { Id = 3, Name = "الفتح", GovernorateId = 1 },
 
-                // مدن القاهرة
                 new City { Id = 4, Name = "مدينة نصر", GovernorateId = 2 },
                 new City { Id = 5, Name = "مصر الجديدة", GovernorateId = 2 },
                 new City { Id = 6, Name = "المعادي", GovernorateId = 2 },
 
-                // مدن الجيزة
                 new City { Id = 7, Name = "6 أكتوبر", GovernorateId = 3 },
                 new City { Id = 8, Name = "الدقي", GovernorateId = 3 },
                 new City { Id = 9, Name = "الهرم", GovernorateId = 3 },
 
-                // مدن الإسكندرية
                 new City { Id = 10, Name = "المنتزة", GovernorateId = 4 },
                 new City { Id = 11, Name = "سموحة", GovernorateId = 4 },
                 new City { Id = 12, Name = "محرم بك", GovernorateId = 4 },
 
-                // مدن المنصورة (الدقهلية)
                 new City { Id = 13, Name = "المنصورة", GovernorateId = 5 },
                 new City { Id = 14, Name = "طلخا", GovernorateId = 5 },
                 new City { Id = 15, Name = "ميت غمر", GovernorateId = 5 },
 
-                // مدن المنيا
                 new City { Id = 16, Name = "المنيا", GovernorateId = 6 },
                 new City { Id = 17, Name = "ملوي", GovernorateId = 6 },
                 new City { Id = 18, Name = "مغاغة", GovernorateId = 6 },
 
-                // مدن سوهاج
                 new City { Id = 19, Name = "سوهاج", GovernorateId = 7 },
                 new City { Id = 20, Name = "طهطا", GovernorateId = 7 },
                 new City { Id = 21, Name = "جرجا", GovernorateId = 7 },
 
-                // مدن قنا
                 new City { Id = 22, Name = "قنا", GovernorateId = 8 },
                 new City { Id = 23, Name = "نجع حمادي", GovernorateId = 8 },
                 new City { Id = 24, Name = "قوص", GovernorateId = 8 },
 
-                // مدن الأقصر
                 new City { Id = 25, Name = "الأقصر", GovernorateId = 9 },
                 new City { Id = 26, Name = "إسنا", GovernorateId = 9 },
                 new City { Id = 27, Name = "أرمنت", GovernorateId = 9 },
 
-                // مدن أسوان
                 new City { Id = 28, Name = "أسوان", GovernorateId = 10 },
                 new City { Id = 29, Name = "كوم أمبو", GovernorateId = 10 },
                 new City { Id = 30, Name = "إدفو", GovernorateId = 10 }

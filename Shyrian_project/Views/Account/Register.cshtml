@@ -44,7 +44,6 @@
                                 <select asp-for="BloodTypeId" class="form-select border-danger" asp-items="@(new SelectList(ViewBag.BloodTypes, "Id", "Name"))">
                                     <option value="">-- Optional: Choose Later --</option>
                                 </select>
-                                <!-- التحذير الأحمر -->
                                 <p class="text-danger small fw-bold mt-1">
                                     <i class="bi bi-exclamation-triangle"></i> Attention: Your blood type cannot be changed after registration.
                                 </p>

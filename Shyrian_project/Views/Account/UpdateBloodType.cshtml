@@ -21,18 +21,15 @@
                         <div class="form-group mb-4">
                             <label class="fw-bold mb-1">Blood Type</label>
                             
-                            @* التعديل الجوهري هنا: لو الموديل جاي فيه ID للفصيلة، بنقفلها *@
                             @if (Model != null && Model.BloodTypeId > 0)
                             {
                                 <div class="alert alert-light border d-flex justify-content-between align-items-center shadow-sm">
                                     <span class="fw-bold text-danger">
                                         <i class="bi bi-droplet-fill"></i>
-                                        @* بنطلع اسم الفصيلة من الـ ViewBag *@
                                         @((ViewBag.BloodTypes as List<BloodType>)?.FirstOrDefault(b => b.Id == Model.BloodTypeId)?.Name)
                                     </span>
                                     <span class="badge bg-secondary"><i class="bi bi-lock-fill"></i> Locked</span>
                                 </div>
-                                @* مهم جداً نبعت الـ ID مخفي عشان الكنترولر يعرف يحفظ الملف صح *@
                                 <input type="hidden" asp-for="BloodTypeId" />
                             }
                             else

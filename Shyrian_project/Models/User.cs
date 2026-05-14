@@ -66,7 +66,7 @@ namespace Shyrian_project.Models
         public DateTime? LastDonationDate { get; set; }
 
         // Navigation Properties
-        // 1. Relation between user and his requests
+       
         public virtual ICollection<BloodRequest> MyRequests { get; set; }
 
         // 2. Relation between user and his Donation offers

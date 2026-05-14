@@ -12,7 +12,7 @@ namespace Shyrian_project.Models
         [Required]
         [ForeignKey("Requester")]
         public int RequesterId { get; set; }
-        [InverseProperty("MyRequests")] // عشان نميزها عن علاقة المتبرع في الداتابيز
+        [InverseProperty("MyRequests")] 
         public virtual User Requester { get; set; }
 
 
